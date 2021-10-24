@@ -2,10 +2,8 @@ import sbt._
 
 object Dependencies {
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
-  lazy val slick = "com.typesafe.slick" %% "slick" % "3.3.3"
-  lazy val slickHikaricp = "com.typesafe.slick" %% "slick-hikaricp" % "3.3.3"
-  lazy val sqliteDriver= "org.xerial" % "sqlite-jdbc" % "3.36.0.3"
   lazy val jsonSpray = "com.softwaremill.sttp.tapir" %% "tapir-json-spray" % "0.18.3"
+  lazy val openCsv = "com.opencsv" % "opencsv" % "5.5.2"
 
 
   lazy val akka = new {

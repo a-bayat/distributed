@@ -1,71 +1,46 @@
 package io.skul.distributed.persist
 
+import io.skul.distributed.persist.Model.Models.Book
 
-import io.skul.distributed.persist.Tables.BookTable
-import slick.basic.DatabaseConfig
-import slick.jdbc.SQLiteProfile
-import slick.jdbc.SQLiteProfile.api._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import java.io.{File, FileOutputStream, PrintWriter}
+import scala.io.Source
 import scala.language.postfixOps
+import scala.util.{Failure, Success, Try}
+
+object Repository {
 
 
-trait Db {
-  val config: Database
-}
+  private lazy val distPath = new File("distributed.csv")
+  private lazy val source = Source.fromFile(distPath)
 
-class Repository(val config: Database) extends Db with BookTable {
 
-  import io.skul.distributed.persist.Model.Models.Book
-
-  //  def insertBook(book: Book): Future[Either[BookInsertException, Book]] = {
-  def insertBook(book: Book): Future[Int] = {
-    config.run(books += book) // TODO => fix the return type and handle error
-  }
-
-  def getBook(id: Int): Future[Option[Book]] = {
-    config.run(books.filter(book => book.id === id).result.headOption)
-  }
-
-  def getBooks(): Future[Seq[Book]] =
-    config.run(books.result)
-
-  def deleteBook(id: Int): Future[Boolean] =
-    config.run(books.filter(book => book.id === id).delete) map {
-      _ > 0
+  def insertBook(book: Book): Unit = {
+    val nextId = Try {
+      getBooks.last.id + 1
     }
+    val pw = new PrintWriter(new FileOutputStream(distPath, true))
+    nextId match {
+      case Failure(_) => try {
+        pw.write("Id,Name,Author,PubDate\n")
+        pw.write(s"${book.toString}\n")
+      } finally pw.close()
+      case Success(id) =>
+        val nextBook = book.copy(id)
+        try pw.write(s"${nextBook.toString}\n") finally pw.close()
+    }
+  }
 
+  def getBook(id: Int): Option[Book] = {
+    getBooks.find(_.id == id)
+  }
 
+  def getBook(name: String): Option[Book] = {
+    getBooks.find(_.name.toLowerCase.contains(name.toLowerCase))
+  }
 
-  //  val books = TableQuery[Book]
-  //  val db = Database.forConfig("database.db")
-  //
-  //  val setup = DBIO.seq(
-  //    (books.schema).create,
-  //    books += (1, "hava", "amir", "2.2.2"),
-  //    books += (2, "talo", "ali", "2.2.2"),
-  //    books += (3, "malo", "mehrdad", "2.2.2"),
-  //    books += (4, "alo", "hosein", "2.2.2"),
-  //  )
-  //
-  //  val setupFuture = Await.result(db.run(setup), 20 seconds)
-  //
-  //  val oo = db.run(books.result).map(_.foreach{
-  //    case (id, name, author, pubdate) =>
-  //      println (s"${id} ${name} ${author} ${pubdate} ")
-  //  })
-  //
-  //  def get(id: Int): Future[Book] = {
-  //    db.run(books.)
-  //  }
-  //
-  //  def getAll(): List[Book] = {
-  //
-  //  }
-  //
-  //  def addBook(book: Book): Unit = {
-  //
-  //  }
-
+  def getBooks: List[Book] = {
+    val res = source.getLines().drop(1).map(_.split(",").toList).toList.map(l => Book(l.head.toInt, l(1), l(2), l(3)))
+    source.close()
+    res
+  }
 }

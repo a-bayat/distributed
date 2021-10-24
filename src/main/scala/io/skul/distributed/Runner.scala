@@ -2,24 +2,23 @@ package io.skul.distributed
 
 import io.skul.distributed.persist.Model.Models.Book
 import io.skul.distributed.persist.Repository
-import slick.basic.DatabaseConfig
-import slick.jdbc.JdbcBackend.Database
 
+import java.io.File
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
+import scala.io.Source
 import scala.language.postfixOps
 
 object Runner extends App {
-  val booksRepo = new Repository(Database.forConfig("database.db"))
 
-  val books = booksRepo.getBooks()
 
-  val r  = Await.result(books, 10 seconds)
+  val r = Repository(source, distPath)
 
-  r.foreach(println)
+  r.getBook("Good to Great").foreach(print)
 
-  println("insert new one")
+//  Repository(source).getBooks()
 
-  booksRepo.insertBook(Book(Some(0), "berme days2", "loren hardi", "2021-10-02"))
+  source.close()
+
 }
