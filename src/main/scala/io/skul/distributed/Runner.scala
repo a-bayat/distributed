@@ -13,12 +13,9 @@ import scala.language.postfixOps
 object Runner extends App {
 
 
-  val r = Repository(source, distPath)
+  val r = Repository
 
   r.getBook("Good to Great").foreach(print)
 
-//  Repository(source).getBooks()
-
-  source.close()
 
 }
